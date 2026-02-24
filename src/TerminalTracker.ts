@@ -33,19 +33,23 @@ export class TerminalTracker implements vscode.Disposable {
           this._panel?.postMessage({ type: 'activateSprite', name });
         }
       }),
-      // Detect terminal activity via onDidWriteTerminalData (proposed API fallback: use shell integration)
-      vscode.window.onDidStartTerminalShellExecution?.(() => {
-        const active = vscode.window.activeTerminal;
-        if (active) {
-          const name = this._getSpriteName(active);
-          this._panel?.postMessage({ type: 'spriteActivity', name, text: 'Running...' });
+      // Detect terminal activity via shell integration events
+      vscode.window.onDidStartTerminalShellExecution?.((e: any) => {
+        const terminal = e?.terminal ?? vscode.window.activeTerminal;
+        if (terminal) {
+          const name = this._getSpriteName(terminal);
+          const cmd = e?.execution?.commandLine?.value;
+          const text = cmd ? `> ${cmd}` : 'Running...';
+          this._panel?.postMessage({ type: 'spriteActivity', name, text });
         }
       }) ?? { dispose: () => {} },
-      vscode.window.onDidEndTerminalShellExecution?.(() => {
-        const active = vscode.window.activeTerminal;
-        if (active) {
-          const name = this._getSpriteName(active);
-          this._panel?.postMessage({ type: 'spriteIdle', name });
+      vscode.window.onDidEndTerminalShellExecution?.((e: any) => {
+        const terminal = e?.terminal ?? vscode.window.activeTerminal;
+        if (terminal) {
+          const name = this._getSpriteName(terminal);
+          const exitCode = e?.exitCode;
+          const text = exitCode === 0 ? 'Done \u2713' : exitCode != null ? `Exit ${exitCode}` : 'Done \u2713';
+          this._panel?.postMessage({ type: 'spriteIdle', name, text });
         }
       }) ?? { dispose: () => {} }
     );

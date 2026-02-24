@@ -168,7 +168,7 @@ export class SpritePanel {
           <button class="item-btn" data-item="printer" title="Printer">🖨</button>
           <button class="item-btn" data-item="trash-can" title="Trash">🗑</button>
           <button class="item-btn" data-item="lamp-post" title="Lamp">💡</button>
-          <button id="deleteItemBtn" title="Delete">✕</button>
+          <button id="deleteItemBtn" title="Eraser">🧹</button>
         </div>
       </div>
       <div id="loadingBar"></div>

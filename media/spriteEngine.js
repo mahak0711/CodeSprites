@@ -1,5 +1,5 @@
 // @ts-nocheck
-/* Pixel Agent – L-Shaped Apartment Office */
+/* Pixel Agent – 3-Room Apartment Office */
 (function () {
   'use strict';
 
@@ -88,16 +88,15 @@
   };
 
   // ═══════════════════════════════════════
-  //  L-SHAPED APARTMENT LAYOUT
+  //  3-ROOM APARTMENT LAYOUT
   //
   //  ┌────────────────────────────────┐
   //  │         OFFICE + DEV LAB       │  <- top floor (full width)
   //  │    (wood)     │    (tile)      │
-  //  ├───────────────┤  ┌─────────────┘
-  //  │    LOUNGE     │  │  GARDEN
-  //  │   (carpet)    │  │ (outdoor)
-  //  └───────────────┘  │
-  //                     └──────────
+  //  ├───────────────┴────────────────┤
+  //  │           LOUNGE               │  <- bottom floor (full width)
+  //  │          (carpet)              │
+  //  └────────────────────────────────┘
   // ═══════════════════════════════════════
 
   let layout = null;
@@ -107,12 +106,12 @@
     const wallH = 38;
     const statusH = 24;
     const splitY = Math.floor(h * 0.48);   // horizontal split
-    const splitX = Math.floor(w * 0.55);    // vertical split for bottom
+    const splitX = w;                        // lounge spans full width
     const dividerX = Math.floor(w * 0.5);   // divider in top floor
     const floorY = wallH;
     const floorBot = h - statusH;
 
-    // Save L-shape bounds for collision
+    // Save bounds for collision
     const bounds = { wallH, splitY, splitX, floorBot, dividerX, statusH };
 
     // ════════════════════════
@@ -159,32 +158,15 @@
     DECOR.push({ type: 'printer', x: w - 36, y: splitY - 40 });
 
     // ════════════════════════
-    //  BOTTOM-LEFT: LOUNGE
+    //  BOTTOM: LOUNGE (full width)
     // ════════════════════════
 
     // Lounge workstations (2 desks)
     WS.push({ x: 14, y: splitY + 22, type: 'desk-laptop', chairX: 28, chairY: splitY + 50, occupant: null });
-    WS.push({ x: splitX * 0.45, y: splitY + 18, type: 'desk-laptop', chairX: splitX * 0.45 + 14, chairY: splitY + 46, occupant: null });
+    WS.push({ x: w * 0.4, y: splitY + 18, type: 'desk-laptop', chairX: w * 0.4 + 14, chairY: splitY + 46, occupant: null });
 
     // Lounge is blank — users can place items via the toolbar
-    DECOR.push({ type: 'zone-label', x: splitX * 0.35, y: splitY + 12, text: 'LOUNGE' });
-
-    // ════════════════════════
-    //  BOTTOM-RIGHT: OUTDOOR GARDEN
-    // ════════════════════════
-    DECOR.push({ type: 'tree', x: w - 40, y: splitY + 20 });
-    DECOR.push({ type: 'tree-small', x: splitX + 30, y: floorBot - 50 });
-    DECOR.push({ type: 'bush', x: splitX + 10, y: splitY + 40 });
-    DECOR.push({ type: 'bush', x: w - 24, y: floorBot - 38 });
-    DECOR.push({ type: 'bush', x: splitX + 50, y: floorBot - 30 });
-    DECOR.push({ type: 'garden-bench', x: splitX + 40, y: splitY + 60 });
-    DECOR.push({ type: 'flower-bed', x: splitX + 8, y: splitY + 16, w: 30 });
-    DECOR.push({ type: 'flower-bed', x: w - 40, y: floorBot - 20, w: 34 });
-    DECOR.push({ type: 'garden-path', x: splitX + 20, y: splitY + 30, h: floorBot - splitY - 34 });
-    DECOR.push({ type: 'bird', x: w - 50, y: splitY + 30 });
-    DECOR.push({ type: 'fence-section', x: splitX + 4, y: splitY + 4, len: floorBot - splitY - 8, dir: 'v' });
-    DECOR.push({ type: 'fence-section', x: splitX + 4, y: floorBot - 4, len: w - splitX - 8, dir: 'h' });
-    DECOR.push({ type: 'lamp-post', x: splitX + 60, y: splitY + 14 });
+    DECOR.push({ type: 'zone-label', x: w * 0.45, y: splitY + 12, text: 'LOUNGE' });
 
     return { workstations: WS, decor: DECOR, clickables: CLICK, bounds };
   }
@@ -216,7 +198,8 @@
   function isInLounge(px, py) {
     if (!layout) return false;
     const b = layout.bounds;
-    return px >= 6 && px <= b.splitX - 10 && py >= b.splitY + 4 && py <= b.floorBot - 10;
+    const w = canvas.getBoundingClientRect().width;
+    return px >= 6 && px <= w - 10 && py >= b.splitY + 4 && py <= b.floorBot - 10;
   }
 
   function snapGrid(v) { return Math.round(v / 8) * 8; }
@@ -333,40 +316,9 @@
     const b = layout.bounds;
     const ts = 16;
 
-    // ── OUTDOOR BACKGROUND (fill everything first) ──
-    const skyG = ctx.createLinearGradient(0, 0, 0, h);
-    skyG.addColorStop(0, '#70b8e0'); skyG.addColorStop(0.35, C.sky);
-    skyG.addColorStop(0.4, '#a0d8a0'); skyG.addColorStop(1, C.grass);
-    ctx.fillStyle = skyG;
+    // ── BACKGROUND (fill everything) ──
+    ctx.fillStyle = C.wallBot;
     ctx.fillRect(0, 0, w, h);
-
-    // Grass texture in garden area
-    for (let gy = b.splitY; gy < b.floorBot; gy += 8) {
-      for (let gx = b.splitX; gx < w; gx += 8) {
-        ctx.fillStyle = ((gx + gy) % 16 < 8) ? C.grass : C.grassDark;
-        ctx.fillRect(gx, gy, 8, 8);
-      }
-    }
-    // Grass tufts
-    ctx.fillStyle = C.grassLight;
-    for (let i = 0; i < 20; i++) {
-      const gx = b.splitX + 10 + ((i * 37) % (w - b.splitX - 20));
-      const gy = b.splitY + 10 + ((i * 53) % (b.floorBot - b.splitY - 20));
-      ctx.fillRect(gx, gy, 2, 3);
-      ctx.fillRect(gx + 3, gy + 1, 2, 2);
-    }
-
-    // Sun + clouds in the sky area (top-right above garden)
-    ctx.fillStyle = '#f0d840';
-    ctx.beginPath(); ctx.arc(w - 30, 20, 12, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = 'rgba(240,216,64,0.15)';
-    ctx.beginPath(); ctx.arc(w - 30, 20, 18, 0, Math.PI * 2); ctx.fill();
-    // Clouds
-    ctx.fillStyle = 'rgba(255,255,255,0.6)';
-    const cx1 = b.splitX + 20 + (frameTick * 0.015) % (w - b.splitX);
-    ctx.beginPath(); ctx.arc(cx1, b.splitY - 20, 8, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(cx1 + 10, b.splitY - 24, 6, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(cx1 + 5, b.splitY - 26, 5, 0, Math.PI * 2); ctx.fill();
 
     // ── TOP FLOOR AREA ──
 
@@ -400,9 +352,9 @@
       ctx.beginPath(); ctx.moveTo(b.dividerX, y); ctx.lineTo(w, y); ctx.stroke();
     }
 
-    // Lounge floor (carpet) — bottom-left
+    // Lounge floor (carpet) — full width bottom
     for (let y = b.splitY; y < b.floorBot; y += ts) {
-      for (let x = 0; x < b.splitX; x += ts) {
+      for (let x = 0; x < w; x += ts) {
         ctx.fillStyle = ((Math.floor(x / ts) + Math.floor((y - b.splitY) / ts)) % 2 === 0) ? C.carpetA : C.carpetB;
         ctx.fillRect(x, y, ts, ts);
       }
@@ -427,50 +379,12 @@
     ctx.fillStyle = C.wallTrim; ctx.fillRect(0, b.wallH, 6, b.floorBot - b.wallH);
     ctx.fillStyle = C.wallAccent; ctx.fillRect(0, b.wallH, 4, b.floorBot - b.wallH);
 
-    // Right wall (top section only, down to splitY)
-    ctx.fillStyle = C.wallTrim; ctx.fillRect(w - 6, b.wallH, 6, b.splitY - b.wallH);
-    ctx.fillStyle = C.wallAccent; ctx.fillRect(w - 4, b.wallH, 4, b.splitY - b.wallH);
+    // Right wall (full height)
+    ctx.fillStyle = C.wallTrim; ctx.fillRect(w - 6, b.wallH, 6, b.floorBot - b.wallH);
+    ctx.fillStyle = C.wallAccent; ctx.fillRect(w - 4, b.wallH, 4, b.floorBot - b.wallH);
 
-    // Bottom wall of top floor (from splitX to w) — the L corner
-    const cornerWallH = 8;
-    ctx.fillStyle = C.wallTrim; ctx.fillRect(b.splitX, b.splitY - cornerWallH, w - b.splitX, cornerWallH);
-    ctx.fillStyle = C.wallAccent; ctx.fillRect(b.splitX, b.splitY - cornerWallH, w - b.splitX, 4);
-
-    // Right wall of lounge (from splitY to bottom)
-    ctx.fillStyle = C.wallTrim; ctx.fillRect(b.splitX - 6, b.splitY, 6, b.floorBot - b.splitY);
-    ctx.fillStyle = C.wallAccent; ctx.fillRect(b.splitX - 4, b.splitY, 4, b.floorBot - b.splitY);
-
-    // Bottom wall of lounge
-    ctx.fillStyle = C.wallTrim; ctx.fillRect(0, b.floorBot - 2, b.splitX, 2);
-
-    // Bottom wall of garden
-    ctx.fillStyle = C.wallTrim; ctx.fillRect(b.splitX, b.floorBot - 2, w - b.splitX, 2);
-
-    // ── EXTERIOR WALL BRICKS (visible on the outside of the L corner) ──
-    ctx.fillStyle = C.brickA;
-    ctx.fillRect(b.splitX, b.splitY, 8, b.floorBot - b.splitY);
-    ctx.fillStyle = C.brickB;
-    for (let by = b.splitY; by < b.floorBot; by += 8) {
-      const off = (Math.floor((by - b.splitY) / 8) % 2) * 6;
-      for (let bx = b.splitX; bx < b.splitX + 8; bx += 12) {
-        ctx.fillStyle = C.brickLine;
-        ctx.fillRect(bx + off, by, 12, 0.5);
-      }
-    }
-    // Exterior wall top (the horizontal L edge visible from garden)
-    ctx.fillStyle = C.brickA;
-    ctx.fillRect(b.splitX, b.splitY - cornerWallH, w - b.splitX, cornerWallH);
-    for (let by = b.splitY - cornerWallH; by < b.splitY; by += 6) {
-      const off = (Math.floor((by - b.splitY + cornerWallH) / 6) % 2) * 8;
-      ctx.fillStyle = C.brickLine;
-      ctx.fillRect(b.splitX, by, w - b.splitX, 0.5);
-      for (let bx = b.splitX + off; bx < w; bx += 16) {
-        ctx.fillRect(bx, by, 0.5, 6);
-      }
-    }
-    // Roof edge on exterior
-    ctx.fillStyle = C.roofTile; ctx.fillRect(b.splitX, b.splitY - cornerWallH - 3, w - b.splitX, 3);
-    ctx.fillStyle = C.roofDark; ctx.fillRect(b.splitX, b.splitY - cornerWallH - 4, w - b.splitX, 1);
+    // Bottom wall (full width)
+    ctx.fillStyle = C.wallTrim; ctx.fillRect(0, b.floorBot - 2, w, 2);
 
     // ── INTERIOR DIVIDER (office/dev lab) with doorway ──
     const divW = 6, doorW = 40;
@@ -489,12 +403,11 @@
     ctx.fillRect(b.dividerX - divW / 2, doorMid - doorHalf, divW, doorW);
 
     // ── HORIZONTAL DIVIDER (top floor / lounge) with doorway ──
-    // Lounge entrance on left side
-    const hDoorX = b.splitX * 0.4;
+    const hDoorX = w * 0.4;
     const hDoorW = 40;
     ctx.fillStyle = C.wallTrim;
     ctx.fillRect(0, b.splitY - 4, hDoorX - hDoorW / 2, 4);
-    ctx.fillRect(hDoorX + hDoorW / 2, b.splitY - 4, b.splitX - hDoorX - hDoorW / 2, 4);
+    ctx.fillRect(hDoorX + hDoorW / 2, b.splitY - 4, w - hDoorX - hDoorW / 2, 4);
 
     ctx.fillStyle = C.brown;
     ctx.fillRect(hDoorX - hDoorW / 2 - 2, b.splitY - 6, 3, 6);
@@ -1021,21 +934,24 @@
       this.vx = 0; this.vy = 0; this.state = 'idle';
       this.frame = 0; this.frameTick = 0; this.direction = 1;
       this.bubble = null; this.bubbleTimer = 0;
+      this.log = null;         // persistent activity log shown above head
+      this.logFade = 0;        // fade-in animation (0..1)
       this.idleTimer = randomRange(120, 360);
       this.walkTimer = 0; this.bobOffset = 0;
       this.spawnAnim = 1.0; this.jumpY = 0; this.jumpVel = 0;
       this.assignedSeat = null;
     }
 
-    // Check if position is inside the L-shaped interior
+    // Check if position is inside the interior
     isInsideL(x, y) {
       if (!layout) return true;
       const b = layout.bounds;
+      const w = canvas.getBoundingClientRect().width;
       const pad = 8;
       // Top floor (full width)
-      if (y >= b.wallH + pad && y <= b.splitY - pad && x >= pad && x <= canvas.getBoundingClientRect().width - pad - DRAW_W) return true;
-      // Bottom-left (lounge)
-      if (y >= b.splitY && y <= b.floorBot - pad && x >= pad && x <= b.splitX - pad - DRAW_W) return true;
+      if (y >= b.wallH + pad && y <= b.splitY - pad && x >= pad && x <= w - pad - DRAW_W) return true;
+      // Bottom floor - lounge (full width)
+      if (y >= b.splitY && y <= b.floorBot - pad && x >= pad && x <= w - pad - DRAW_W) return true;
       return false;
     }
 
@@ -1049,8 +965,8 @@
         this.x = Math.max(pad, Math.min(w - DRAW_W - pad, this.x));
         this.y = Math.max(b.wallH + pad, Math.min(b.splitY - DRAW_H - 4, this.y));
       } else {
-        // In lounge area
-        this.x = Math.max(pad, Math.min(b.splitX - DRAW_W - pad, this.x));
+        // In lounge area (full width)
+        this.x = Math.max(pad, Math.min(w - DRAW_W - pad, this.x));
         this.y = Math.max(b.splitY + 4, Math.min(b.floorBot - DRAW_H - pad, this.y));
       }
     }
@@ -1063,6 +979,9 @@
         if (this.jumpY >= 0) { this.jumpY = 0; this.jumpVel = 0; }
       }
       if (this.bubbleTimer > 0) { this.bubbleTimer--; if (this.bubbleTimer <= 0) this.bubble = null; }
+      // Animate log fade
+      if (this.log) { this.logFade = Math.min(1, this.logFade + 0.06); }
+      else { this.logFade = Math.max(0, this.logFade - 0.08); }
 
       switch (this.state) {
         case 'idle':
@@ -1129,6 +1048,8 @@
         }
       }
       ctx.restore();
+
+      // ── Name label ──
       ctx.font = '8px monospace'; ctx.textAlign = 'center';
       const tw = ctx.measureText(this.label).width + 8;
       const tx = drawX + DRAW_W / 2 - tw / 2, ty = drawY - 12;
@@ -1137,7 +1058,37 @@
       ctx.strokeStyle = this.palette.shirt; ctx.lineWidth = 1; ctx.globalAlpha = 0.6;
       roundRect(ctx, tx, ty, tw, 12, 3); ctx.stroke(); ctx.globalAlpha = 1;
       ctx.fillStyle = '#333'; ctx.fillText(this.label, drawX + DRAW_W / 2, ty + 9);
-      if (this.bubble && CONFIG.showBubbles) this._drawBubble(drawX + DRAW_W / 2, ty - 4);
+
+      // ── Persistent log display above name ──
+      if (this.logFade > 0 && (this.log || this.logFade > 0.01)) {
+        this._drawLog(drawX + DRAW_W / 2, ty - 2);
+      }
+
+      // ── Temporary bubble (shown on top of everything) ──
+      if (this.bubble && CONFIG.showBubbles) this._drawBubble(drawX + DRAW_W / 2, ty - (this.logFade > 0.01 ? 18 : 4));
+    }
+
+    _drawLog(cx, cy) {
+      const displayText = this.log || '';
+      if (!displayText) return;
+      ctx.font = '7px monospace'; ctx.textAlign = 'center';
+      const lw = ctx.measureText(displayText).width + 12, lh = 14;
+      const lx = cx - lw / 2, ly = cy - lh - 1;
+
+      ctx.globalAlpha = this.logFade * 0.92;
+      // Dark background for log
+      ctx.fillStyle = '#1a2a3a';
+      roundRect(ctx, lx, ly, lw, lh, 3); ctx.fill();
+      ctx.strokeStyle = this.state === 'active' ? C.green : C.blue; ctx.lineWidth = 1;
+      roundRect(ctx, lx, ly, lw, lh, 3); ctx.stroke();
+      // Pointer triangle
+      ctx.fillStyle = '#1a2a3a';
+      ctx.beginPath(); ctx.moveTo(cx - 3, ly + lh); ctx.lineTo(cx, ly + lh + 2); ctx.lineTo(cx + 3, ly + lh); ctx.fill();
+      // Text in green (terminal style)
+      ctx.fillStyle = this.state === 'active' ? C.green : '#a0b8c8';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(displayText, cx, ly + lh / 2);
+      ctx.globalAlpha = 1;
     }
 
     _drawBubble(cx, cy) {
@@ -1155,6 +1106,14 @@
     }
 
     showBubble(text) { this.bubble = text.length > 24 ? text.slice(0, 22) + '\u2026' : text; this.bubbleTimer = 180; }
+
+    setLog(text) {
+      if (text) {
+        this.log = text.length > 28 ? text.slice(0, 26) + '\u2026' : text;
+      } else {
+        this.log = null;
+      }
+    }
 
     setActive(active) {
       if (active) {
@@ -1260,12 +1219,25 @@
       }
       case 'spriteActivity': {
         const s = sprites.get(msg.name);
-        if (s) { s.setActive(true); if (msg.text) s.showBubble(msg.text); }
+        if (s) {
+          s.setActive(true);
+          if (msg.text) {
+            s.setLog(msg.text);
+            s.showBubble(msg.text);
+          }
+        }
         break;
       }
       case 'spriteIdle': {
         const s = sprites.get(msg.name);
-        if (s) { s.setActive(false); s.showBubble('Done \u2713'); }
+        if (s) {
+          const doneText = msg.text || 'Done \u2713';
+          s.setLog(doneText);
+          s.showBubble(doneText);
+          s.setActive(false);
+          // Clear log after a delay (fade out naturally)
+          setTimeout(() => { if (s.state !== 'active') s.setLog(null); }, 3000);
+        }
         break;
       }
       case 'resetAll':
@@ -1315,7 +1287,11 @@
     const rect = canvas.getBoundingClientRect();
     const mx = e.clientX - rect.left, my = e.clientY - rect.top;
     hoveredClickable = hitClickable(mx, my);
-    canvas.style.cursor = (hitSprite(mx, my) || hoveredClickable) ? 'pointer' : 'default';
+    if (selectedTool) {
+      canvas.style.cursor = 'crosshair';
+    } else {
+      canvas.style.cursor = (hitSprite(mx, my) || hoveredClickable) ? 'pointer' : 'default';
+    }
   });
 
   window.addEventListener('resize', resize);
