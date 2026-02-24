@@ -125,12 +125,22 @@ export class SpritePanel {
 <body>
   <div id="mainContainer">
     <div id="innerPanel">
-      <div id="headerBar">
-        <span id="headerDot"></span>
-        <span id="headerTitle">Pixel Agent</span>
-        <span id="headerCursor"></span>
-      </div>
       <canvas id="spriteCanvas"></canvas>
+      <div id="hudOverlay">
+        <div class="hud-bar">
+          <span class="hud-bar-label">SYS</span>
+          <div class="hud-bar-track"><div class="hud-bar-fill" id="hudHpFill"></div></div>
+        </div>
+        <div class="hud-bar">
+          <span class="hud-bar-label">PWR</span>
+          <div class="hud-bar-track"><div class="hud-bar-fill" id="hudEpFill"></div></div>
+        </div>
+      </div>
+      <div id="dialogBox">
+        <span id="dialogTitle"></span>
+        <button id="dialogClose">X</button>
+        <div id="dialogText"></div>
+      </div>
       <div id="loadingBar"></div>
       <div id="statusBar">
         <span id="spriteCount">0 agents</span>
