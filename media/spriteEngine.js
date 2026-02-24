@@ -930,7 +930,7 @@
       sprite.draw();
     }
 
-    statusEl.textContent = sprites.size + ' sprite' + (sprites.size !== 1 ? 's' : '');
+    statusEl.textContent = sprites.size + ' agent' + (sprites.size !== 1 ? 's' : '');
     requestAnimationFrame(loop);
   }
 

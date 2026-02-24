@@ -18,7 +18,7 @@ export class SpritePanel {
 
     this._panel = vscode.window.createWebviewPanel(
       SpritePanel.viewType,
-      'CodeSprites',
+      'Pixel Agent',
       { viewColumn: vscode.ViewColumn.Beside, preserveFocus: true },
       {
         enableScripts: true,
@@ -115,16 +115,28 @@ export class SpritePanel {
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Content-Security-Policy"
     content="default-src 'none';
-             style-src ${webview.cspSource};
+             style-src ${webview.cspSource} https://fonts.googleapis.com https://fonts.gstatic.com;
+             font-src https://fonts.gstatic.com;
              script-src 'nonce-${nonce}';
              img-src ${webview.cspSource} data:;" />
   <link rel="stylesheet" href="${styleUri}" />
-  <title>CodeSprites</title>
+  <title>Pixel Agent</title>
 </head>
 <body>
-  <canvas id="spriteCanvas"></canvas>
-  <div id="statusBar">
-    <span id="spriteCount">0 sprites</span>
+  <div id="mainContainer">
+    <div id="innerPanel">
+      <div id="headerBar">
+        <span id="headerDot"></span>
+        <span id="headerTitle">Pixel Agent</span>
+        <span id="headerCursor"></span>
+      </div>
+      <canvas id="spriteCanvas"></canvas>
+      <div id="loadingBar"></div>
+      <div id="statusBar">
+        <span id="spriteCount">0 agents</span>
+        <span id="statusIndicator">ONLINE</span>
+      </div>
+    </div>
   </div>
   <script nonce="${nonce}" src="${engineUri}"></script>
 </body>
