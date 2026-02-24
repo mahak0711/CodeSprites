@@ -1,6 +1,5 @@
-/* Pixel Agent – Retro RPG Cyberpunk Lab
-   Palette: #0a0a12 void, #1a1a2e dark, #00f0ff cyan, #bf00ff purple,
-            #3d5afe blue, #3ddc84 green, #e0e0ff text */
+/* Pixel Agent – Minecraft-Style Multi-Room Office
+   Palette: warm oaks, grass greens, sky blues, stone grays, cream whites */
 
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
@@ -9,45 +8,58 @@
 html, body {
   width: 100%; height: 100%;
   overflow: hidden;
-  background: #0a0a12;
+  background: #d4c8a0;
   font-family: 'Press Start 2P', monospace;
 }
 
-/* ── CRT Scanlines ── */
-body::after {
-  content: '';
-  position: fixed; inset: 0;
-  background: repeating-linear-gradient(
-    0deg, transparent, transparent 2px,
-    rgba(0,0,0,0.06) 2px, rgba(0,0,0,0.06) 4px
-  );
-  pointer-events: none;
-  z-index: 9999;
-}
-
-/* ── Main Container ── */
 #mainContainer {
   position: relative;
   width: calc(100% - 8px); height: calc(100% - 8px);
   margin: 4px;
-  border-radius: 6px;
-  padding: 2px;
-  background: linear-gradient(135deg, #00f0ff, #bf00ff, #3d5afe, #00f0ff);
-  background-size: 300% 300%;
-  animation: borderGlow 6s ease infinite;
+  border: 3px solid #6a4a2a;
+  border-radius: 4px;
+  background: #b8935a;
+  overflow: hidden;
   z-index: 1;
-}
-@keyframes borderGlow {
-  0%,100% { background-position: 0% 50%; }
-  50%     { background-position: 100% 50%; }
 }
 
 #innerPanel {
   width: 100%; height: 100%;
-  border-radius: 4px;
-  background: #0a0a12;
+  background: #b8935a;
   overflow: hidden;
   position: relative;
+}
+
+/* ── Room Tabs ── */
+#roomNav {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 22px;
+  display: flex;
+  z-index: 30;
+  background: #6a4a2a;
+  border-bottom: 2px solid #503818;
+}
+
+.room-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 6px;
+  color: #d4c8a0;
+  cursor: pointer;
+  border-right: 1px solid #503818;
+  transition: background 0.15s, color 0.15s;
+  letter-spacing: 1px;
+  user-select: none;
+}
+.room-tab:last-child { border-right: none; }
+.room-tab:hover { background: #7a5a32; color: #f0e8d0; }
+.room-tab.active {
+  background: #9a7a48;
+  color: #fff;
+  box-shadow: inset 0 -2px 0 #e0c040;
 }
 
 /* ── Canvas ── */
@@ -58,144 +70,119 @@ body::after {
   position: absolute; top: 0; left: 0;
 }
 
-/* ── HUD Overlay (top-right) ── */
+/* ── HUD (top-right) ── */
 #hudOverlay {
   position: absolute;
-  top: 6px; right: 8px;
+  top: 26px; right: 6px;
   z-index: 20;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
   pointer-events: none;
 }
-
-.hud-bar {
-  display: flex; align-items: center; gap: 4px;
-}
+.hud-bar { display: flex; align-items: center; gap: 3px; }
 .hud-bar-label {
-  font-size: 6px;
-  color: #e0e0ff;
+  font-size: 5px; color: #6a4a2a;
   width: 18px;
-  text-shadow: 1px 1px 0 #000;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.3);
 }
 .hud-bar-track {
-  width: 52px; height: 6px;
-  background: #0d0d1a;
-  border: 1px solid #333;
-  border-radius: 1px;
+  width: 48px; height: 6px;
+  background: #8a7a5a;
+  border: 1px solid #6a5a3a;
+  border-radius: 2px;
   overflow: hidden;
 }
-.hud-bar-fill {
-  height: 100%;
-  transition: width 0.5s;
-}
-#hudHpFill { background: #3ddc84; width: 80%; box-shadow: 0 0 4px #3ddc84; }
-#hudEpFill { background: #00f0ff; width: 60%; box-shadow: 0 0 4px #00f0ff; }
+.hud-bar-fill { height: 100%; transition: width 0.5s; border-radius: 1px; }
+#hudHpFill { background: #5dbe5d; width: 80%; }
+#hudEpFill { background: #5b9bd5; width: 60%; }
 
-/* ── Status Bar (bottom) ── */
+/* ── Status Bar ── */
 #statusBar {
   position: absolute;
   bottom: 0; left: 0; right: 0;
-  height: 22px;
-  background: rgba(10,10,18,0.95);
-  border-top: 1px solid rgba(0,240,255,0.12);
+  height: 20px;
+  background: #6a4a2a;
+  border-top: 2px solid #503818;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 10px;
-  font-size: 6px;
-  color: #666;
+  padding: 0 8px;
+  font-size: 5px;
+  color: #d4c8a0;
   z-index: 20;
 }
-
-#spriteCount {
-  color: #bf00ff;
-  text-shadow: 0 0 4px rgba(191,0,255,0.4);
-}
-
+#spriteCount { color: #e0c040; }
 #statusIndicator {
   display: flex; align-items: center; gap: 4px;
-  color: #3ddc84;
+  color: #5dbe5d;
 }
 #statusIndicator::before {
   content: '';
   width: 4px; height: 4px;
   border-radius: 50%;
-  background: #3ddc84;
-  box-shadow: 0 0 4px #3ddc84;
+  background: #5dbe5d;
   animation: dotPulse 2s ease-in-out infinite;
 }
 @keyframes dotPulse {
   0%,100% { opacity: 1; }
-  50%     { opacity: 0.3; }
+  50%     { opacity: 0.4; }
 }
 
-/* ── RPG Dialog Box ── */
+/* ── Dialog Box (RPG-style) ── */
 #dialogBox {
   position: absolute;
-  bottom: 30px; left: 10px; right: 10px;
-  background: #0d0d1a;
-  border: 2px solid #00f0ff;
+  bottom: 24px; left: 8px; right: 8px;
+  background: #f0e8d0;
+  border: 3px solid #6a4a2a;
   border-radius: 4px;
-  padding: 10px 12px 10px 12px;
+  padding: 8px 10px;
   z-index: 50;
   transform: translateY(120%);
   opacity: 0;
-  transition: transform 0.25s ease-out, opacity 0.2s;
-  box-shadow:
-    0 0 16px rgba(0,240,255,0.15),
-    inset 0 0 20px rgba(0,240,255,0.03);
+  transition: transform 0.2s ease-out, opacity 0.15s;
+  box-shadow: 2px 2px 0 rgba(0,0,0,0.15);
 }
-#dialogBox.open {
-  transform: translateY(0);
-  opacity: 1;
-}
+#dialogBox.open { transform: translateY(0); opacity: 1; }
 
 #dialogTitle {
   font-size: 7px;
-  color: #00f0ff;
-  text-shadow: 0 0 6px rgba(0,240,255,0.5);
-  margin-bottom: 6px;
+  color: #6a4a2a;
+  margin-bottom: 5px;
   letter-spacing: 1px;
 }
-
 #dialogText {
   font-size: 6px;
-  color: #b0b0cc;
+  color: #555;
   line-height: 1.8;
   white-space: pre-wrap;
-  min-height: 28px;
+  min-height: 24px;
 }
-
 #dialogClose {
   position: absolute;
-  top: 6px; right: 8px;
+  top: 5px; right: 6px;
   font-family: 'Press Start 2P', monospace;
   font-size: 6px;
-  color: #bf00ff;
-  background: none;
-  border: 1px solid rgba(191,0,255,0.3);
+  color: #e06060;
+  background: #f0e8d0;
+  border: 2px solid #e06060;
   border-radius: 2px;
-  padding: 2px 6px;
+  padding: 2px 5px;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all 0.1s;
 }
 #dialogClose:hover {
-  background: rgba(191,0,255,0.15);
-  border-color: #bf00ff;
-  box-shadow: 0 0 8px rgba(191,0,255,0.3);
-  transform: scale(1.1);
+  background: #e06060;
+  color: #fff;
 }
-#dialogClose:active {
-  transform: scale(0.95);
-}
+#dialogClose:active { transform: scale(0.95); }
 
 /* ── Loading Strip ── */
 #loadingBar {
   position: absolute;
-  bottom: 22px; left: 0; right: 0;
-  height: 1px;
-  background: rgba(0,240,255,0.05);
+  bottom: 20px; left: 0; right: 0;
+  height: 2px;
+  background: #8a7a5a;
   overflow: hidden;
   z-index: 20;
 }
@@ -204,7 +191,7 @@ body::after {
   display: block;
   width: 30%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, #00f0ff, #bf00ff, transparent);
+  background: linear-gradient(90deg, transparent, #e0c040, #5dbe5d, transparent);
   animation: loadSlide 3s ease-in-out infinite;
 }
 @keyframes loadSlide {

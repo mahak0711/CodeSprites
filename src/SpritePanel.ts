@@ -125,6 +125,11 @@ export class SpritePanel {
 <body>
   <div id="mainContainer">
     <div id="innerPanel">
+      <div id="roomNav">
+        <span class="room-tab active">OFFICE</span>
+        <span class="room-tab">DEV LAB</span>
+        <span class="room-tab">LOUNGE</span>
+      </div>
       <canvas id="spriteCanvas"></canvas>
       <div id="hudOverlay">
         <div class="hud-bar">
