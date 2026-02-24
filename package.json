@@ -1,0 +1,104 @@
+{
+  "name": "codesprites",
+  "displayName": "CodeSprites",
+  "description": "Visualize terminal sessions as animated pixel characters in a live webview panel.",
+  "version": "1.0.0",
+  "publisher": "codesprites",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Visualization",
+    "Other"
+  ],
+  "keywords": [
+    "pixel",
+    "sprites",
+    "terminal",
+    "animation",
+    "fun"
+  ],
+  "icon": "media/icon.png",
+  "galleryBanner": {
+    "color": "#1a1a2e",
+    "theme": "dark"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/codesprites/codesprites"
+  },
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "codesprites.open",
+        "title": "CodeSprites: Open Sprite Panel",
+        "icon": "$(pulse)"
+      },
+      {
+        "command": "codesprites.reset",
+        "title": "CodeSprites: Reset All Sprites"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "codesprites.open",
+        "key": "ctrl+shift+p ctrl+s",
+        "mac": "cmd+shift+p cmd+s"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "codesprites.open",
+          "group": "navigation"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "CodeSprites",
+      "properties": {
+        "codesprites.maxSprites": {
+          "type": "number",
+          "default": 12,
+          "minimum": 1,
+          "maximum": 30,
+          "description": "Maximum number of sprites displayed at once."
+        },
+        "codesprites.spriteSpeed": {
+          "type": "number",
+          "default": 1.0,
+          "minimum": 0.2,
+          "maximum": 3.0,
+          "description": "Movement speed multiplier for sprites."
+        },
+        "codesprites.showBubbles": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show speech bubbles on terminal activity."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src --ext ts",
+    "package": "vsce package",
+    "publish": "vsce publish"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.85.0",
+    "@typescript-eslint/eslint-plugin": "^6.19.0",
+    "@typescript-eslint/parser": "^6.19.0",
+    "eslint": "^8.56.0",
+    "typescript": "^5.3.3",
+    "@vscode/vsce": "^2.22.0"
+  }
+}
