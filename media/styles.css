@@ -167,3 +167,82 @@ html, body {
   0%   { transform: translateX(-100%); }
   100% { transform: translateX(450%); }
 }
+
+/* ── Item Toolbar ── */
+#itemToolbar {
+  position: absolute;
+  bottom: 24px; left: 4px;
+  z-index: 30;
+  pointer-events: auto;
+}
+
+#toolbarToggle {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 5px;
+  color: #f0e8d0;
+  background: #8a6a3a;
+  border: 2px solid #705830;
+  border-radius: 3px;
+  padding: 3px 6px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+#toolbarToggle:hover { background: #a07840; }
+
+#toolbarPalette {
+  display: none;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 4px;
+  margin-top: 2px;
+  background: rgba(245,239,224,0.95);
+  border: 2px solid #8a6a3a;
+  border-radius: 4px;
+  max-width: 160px;
+  box-shadow: 2px 2px 0 rgba(0,0,0,0.12);
+}
+#toolbarPalette.open { display: flex; }
+
+.item-btn {
+  width: 22px; height: 22px;
+  font-size: 10px;
+  line-height: 22px;
+  text-align: center;
+  background: #e8dcc8;
+  border: 2px solid #c8b898;
+  border-radius: 3px;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.1s;
+}
+.item-btn:hover {
+  background: #d4c8a0;
+  border-color: #a08860;
+}
+.item-btn.active {
+  background: #5dbe5d;
+  border-color: #3a8a30;
+  box-shadow: 0 0 4px rgba(93,190,93,0.5);
+}
+
+#deleteItemBtn {
+  width: 22px; height: 22px;
+  font-size: 10px;
+  line-height: 22px;
+  text-align: center;
+  background: #f0d0d0;
+  border: 2px solid #e06060;
+  border-radius: 3px;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.1s;
+}
+#deleteItemBtn:hover {
+  background: #e06060;
+  color: #fff;
+}
+#deleteItemBtn.active {
+  background: #e06060;
+  color: #fff;
+  box-shadow: 0 0 4px rgba(224,96,96,0.5);
+}

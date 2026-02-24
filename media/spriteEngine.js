@@ -166,21 +166,8 @@
     WS.push({ x: 14, y: splitY + 22, type: 'desk-laptop', chairX: 28, chairY: splitY + 50, occupant: null });
     WS.push({ x: splitX * 0.45, y: splitY + 18, type: 'desk-laptop', chairX: splitX * 0.45 + 14, chairY: splitY + 46, occupant: null });
 
-    // Lounge furniture
-    CLICK.push({ id: 'coffee', label: 'COFFEE MACHINE', x: splitX - 38, y: splitY + 6, w: 26, h: 34, color: C.orange });
-    CLICK.push({ id: 'bookshelf', label: 'BOOKSHELF', x: 8, y: splitY + 4, w: 44, h: 36, color: C.brown });
-    DECOR.push({ type: 'sofa', x: 18, y: floorBot - 48 });
-    DECOR.push({ type: 'coffee-table', x: 24, y: floorBot - 74 });
-    DECOR.push({ type: 'rug', x: 10, y: floorBot - 84, w: splitX * 0.6, h: 22 });
-    DECOR.push({ type: 'plant-large', x: splitX - 22, y: floorBot - 42 });
-    DECOR.push({ type: 'plant-small', x: 6, y: floorBot - 30 });
-    DECOR.push({ type: 'water-cooler', x: splitX * 0.6, y: splitY + 6 });
-    DECOR.push({ type: 'tv-screen', x: splitX * 0.5, y: splitY + 4, w: 30, h: 20 });
-    DECOR.push({ type: 'bean-bag', x: splitX * 0.35, y: floorBot - 50 });
+    // Lounge is blank — users can place items via the toolbar
     DECOR.push({ type: 'zone-label', x: splitX * 0.35, y: splitY + 12, text: 'LOUNGE' });
-    DECOR.push({ type: 'ceiling-light', x: splitX * 0.4, y: splitY + 2 });
-    DECOR.push({ type: 'magazine-rack', x: 80, y: floorBot - 36 });
-    DECOR.push({ type: 'umbrella-stand', x: splitX - 16, y: floorBot - 24 });
 
     // ════════════════════════
     //  BOTTOM-RIGHT: OUTDOOR GARDEN
@@ -205,6 +192,118 @@
   let hoveredClickable = null;
   let dialogOpen = false;
   let typewriterInterval = null;
+
+  // ── Custom item placement system ──
+  let customItems = [];
+  let selectedTool = null;
+
+  const PLACEABLE_ITEMS = [
+    { id: 'plant-large',    label: 'Plant',         icon: '🌿' },
+    { id: 'plant-small',    label: 'Sm Plant',      icon: '🌱' },
+    { id: 'sofa',           label: 'Sofa',          icon: '🛋' },
+    { id: 'bookshelf-decor',label: 'Bookshelf',     icon: '📚' },
+    { id: 'coffee-table',   label: 'Table',         icon: '☕' },
+    { id: 'rug',            label: 'Rug',           icon: '🟫' },
+    { id: 'bean-bag',       label: 'Bean Bag',      icon: '🫘' },
+    { id: 'tv-screen',      label: 'TV',            icon: '📺' },
+    { id: 'water-cooler',   label: 'Cooler',        icon: '💧' },
+    { id: 'filing-cabinet',  label: 'Cabinet',      icon: '🗄' },
+    { id: 'printer',        label: 'Printer',       icon: '🖨' },
+    { id: 'trash-can',      label: 'Trash',         icon: '🗑' },
+    { id: 'lamp-post',      label: 'Lamp',          icon: '💡' },
+  ];
+
+  function isInLounge(px, py) {
+    if (!layout) return false;
+    const b = layout.bounds;
+    return px >= 6 && px <= b.splitX - 10 && py >= b.splitY + 4 && py <= b.floorBot - 10;
+  }
+
+  function snapGrid(v) { return Math.round(v / 8) * 8; }
+
+  function placeCustomItem(px, py) {
+    if (!selectedTool || selectedTool === 'delete') return;
+    const sx = snapGrid(px), sy = snapGrid(py);
+    if (!isInLounge(sx, sy)) return;
+    const item = { type: selectedTool, x: sx, y: sy, id: Date.now() };
+    if (selectedTool === 'rug') { item.w = 48; item.h = 18; }
+    if (selectedTool === 'tv-screen') { item.w = 30; item.h = 20; }
+    if (selectedTool === 'bookshelf-decor') { item.type = 'bookshelf-custom'; item.w = 36; item.h = 30; }
+    customItems.push(item);
+    persistCustomItems();
+  }
+
+  function deleteCustomItem(px, py) {
+    for (let i = customItems.length - 1; i >= 0; i--) {
+      const it = customItems[i];
+      const iw = it.w || 24, ih = it.h || 24;
+      if (px >= it.x - 4 && px <= it.x + iw + 4 && py >= it.y - 4 && py <= it.y + ih + 4) {
+        customItems.splice(i, 1);
+        persistCustomItems();
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function persistCustomItems() {
+    vscode.postMessage({ type: 'persistCustomLayout', items: customItems });
+  }
+
+  function drawCustomItem(it) {
+    if (it.type === 'bookshelf-custom') {
+      // Draw a simple bookshelf (decor-only, not clickable)
+      ctx.fillStyle = C.shelfWood; ctx.fillRect(it.x, it.y, it.w, it.h);
+      ctx.fillStyle = C.shelfBack; ctx.fillRect(it.x + 2, it.y + 2, it.w - 4, it.h - 4);
+      const bc = ['#c04040','#4080c0','#40a040','#e0a020','#8050b0'];
+      for (let s = 0; s < 2; s++) {
+        const sy = it.y + 3 + s * 12;
+        ctx.fillStyle = '#9a7a4a'; ctx.fillRect(it.x + 2, sy + 8, it.w - 4, 2);
+        for (let b = 0; b < 4 && (it.x + 4 + b * 8) < it.x + it.w - 4; b++) {
+          ctx.fillStyle = bc[(s * 4 + b) % bc.length]; ctx.fillRect(it.x + 4 + b * 8, sy + (8 - 5 - b % 2), 6, 5 + b % 2);
+        }
+      }
+      ctx.strokeStyle = C.brown; ctx.lineWidth = 1; ctx.strokeRect(it.x, it.y, it.w, it.h);
+    } else {
+      drawDecorItem(it);
+    }
+  }
+
+  function setSelectedTool(toolId) {
+    selectedTool = toolId;
+    // Update toolbar button states
+    document.querySelectorAll('.item-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.item === toolId);
+    });
+    const delBtn = document.getElementById('deleteItemBtn');
+    if (delBtn) delBtn.classList.toggle('active', toolId === 'delete');
+    canvas.style.cursor = toolId ? 'crosshair' : 'default';
+  }
+
+  function initToolbar() {
+    const toggle = document.getElementById('toolbarToggle');
+    const palette = document.getElementById('toolbarPalette');
+    if (!toggle || !palette) return;
+
+    toggle.addEventListener('click', () => {
+      palette.classList.toggle('open');
+      toggle.textContent = palette.classList.contains('open') ? '▼ ITEMS' : '▶ ITEMS';
+    });
+
+    document.querySelectorAll('.item-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const item = btn.dataset.item;
+        setSelectedTool(selectedTool === item ? null : item);
+      });
+    });
+
+    const delBtn = document.getElementById('deleteItemBtn');
+    if (delBtn) {
+      delBtn.addEventListener('click', () => {
+        setSelectedTool(selectedTool === 'delete' ? null : 'delete');
+      });
+    }
+  }
 
   function openDialog(obj) {
     dialogOpen = true; dialogBox.classList.add('open');
@@ -1116,6 +1215,10 @@
           items.push({ y: d.y || 0, draw: () => drawDecorItem(d) });
         }
       }
+      // Custom user-placed items
+      for (const ci of customItems) {
+        items.push({ y: ci.y || 0, draw: () => drawCustomItem(ci) });
+      }
       for (const s of sprites.values()) {
         items.push({ y: s.y + DRAW_H, draw: () => { s.update(); s.draw(); } });
       }
@@ -1168,6 +1271,11 @@
       case 'resetAll':
         for (const [, s] of sprites) s.setActive(false);
         sprites.clear(); break;
+      case 'loadCustomLayout':
+        if (Array.isArray(msg.items)) {
+          customItems = msg.items;
+        }
+        break;
     }
   });
 
@@ -1188,6 +1296,16 @@
   canvas.addEventListener('click', (e) => {
     const rect = canvas.getBoundingClientRect();
     const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+
+    // Custom item placement/deletion takes priority when a tool is selected
+    if (selectedTool === 'delete' && isInLounge(mx, my)) {
+      if (deleteCustomItem(mx, my)) return;
+    }
+    if (selectedTool && selectedTool !== 'delete' && isInLounge(mx, my)) {
+      placeCustomItem(mx, my);
+      return;
+    }
+
     const hit = hitSprite(mx, my);
     if (hit) { hit.sprite.jump(); hit.sprite.showBubble(hit.sprite.label); vscode.postMessage({ type: 'focusTerminal', name: hit.name }); return; }
     const cl = hitClickable(mx, my);
@@ -1202,23 +1320,7 @@
 
   window.addEventListener('resize', resize);
   resize(); loop();
+  initToolbar();
   vscode.postMessage({ type: 'ready' });
 
-  // ── Demo agents ──
-  setTimeout(() => {
-    const demos = [
-      { name: 'agent-alpha',   label: 'Alpha',   active: true,  bubble: 'Compiling...' },
-      { name: 'agent-beta',    label: 'Beta',     active: false, bubble: 'Coffee time' },
-      { name: 'agent-gamma',   label: 'Gamma',    active: true,  bubble: 'Debugging' },
-      { name: 'agent-delta',   label: 'Delta',    active: true,  bubble: 'Deploying' },
-      { name: 'agent-epsilon', label: 'Epsilon',  active: false, bubble: 'Reading' },
-      { name: 'agent-zeta',    label: 'Zeta',     active: true,  bubble: 'Code review' },
-    ];
-    for (const d of demos) {
-      const s = new Sprite(d.name, d.label);
-      sprites.set(d.name, s);
-      if (d.active) s.setActive(true);
-      if (d.bubble) s.showBubble(d.bubble);
-    }
-  }, 300);
 })();

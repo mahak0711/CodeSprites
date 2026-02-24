@@ -83,8 +83,19 @@ export class SpritePanel {
           this._context.globalState.update('codesprites.activeNames', msg.names as string[]);
         }
         break;
+      case 'persistCustomLayout':
+        if (msg.items) {
+          this._context.globalState.update('codesprites.customLayout', msg.items);
+        }
+        break;
       case 'ready':
         this._sendConfig();
+        {
+          const savedItems = this._context.globalState.get<unknown[]>('codesprites.customLayout');
+          if (savedItems && Array.isArray(savedItems)) {
+            this.postMessage({ type: 'loadCustomLayout', items: savedItems });
+          }
+        }
         break;
     }
     for (const cb of this._messageCallbacks) {
@@ -140,6 +151,25 @@ export class SpritePanel {
         <span id="dialogTitle"></span>
         <button id="dialogClose">X</button>
         <div id="dialogText"></div>
+      </div>
+      <div id="itemToolbar">
+        <button id="toolbarToggle">▶ ITEMS</button>
+        <div id="toolbarPalette">
+          <button class="item-btn" data-item="plant-large" title="Plant">🌿</button>
+          <button class="item-btn" data-item="plant-small" title="Small Plant">🌱</button>
+          <button class="item-btn" data-item="sofa" title="Sofa">🛋</button>
+          <button class="item-btn" data-item="bookshelf-decor" title="Bookshelf">📚</button>
+          <button class="item-btn" data-item="coffee-table" title="Table">☕</button>
+          <button class="item-btn" data-item="rug" title="Rug">🟫</button>
+          <button class="item-btn" data-item="bean-bag" title="Bean Bag">🫘</button>
+          <button class="item-btn" data-item="tv-screen" title="TV">📺</button>
+          <button class="item-btn" data-item="water-cooler" title="Cooler">💧</button>
+          <button class="item-btn" data-item="filing-cabinet" title="Cabinet">🗄</button>
+          <button class="item-btn" data-item="printer" title="Printer">🖨</button>
+          <button class="item-btn" data-item="trash-can" title="Trash">🗑</button>
+          <button class="item-btn" data-item="lamp-post" title="Lamp">💡</button>
+          <button id="deleteItemBtn" title="Delete">✕</button>
+        </div>
       </div>
       <div id="loadingBar"></div>
       <div id="statusBar">
